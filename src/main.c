@@ -201,6 +201,18 @@ void handleEvents() {
 void clean() {
 	SDL_DestroyWindow(pWindow);
 	SDL_DestroyRenderer(pRenderer);
+
+	for (int i = pTextureMap->size; i > 0; i--) {
+		struct Node **p = popListTable(pTextureMap);
+		while (*p != NULL) {
+			struct Node *t = *p;
+			*p = (*p)->next;
+			SDL_DestroyTexture(t->data);
+			free(t);
+		}
+	}
+	free(pTextureMap);
+
 	IMG_Quit();
 	SDL_Quit();
 }

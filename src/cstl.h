@@ -26,6 +26,6 @@ typedef struct List {
 } List;
 
 List *newList();
-void pushBackList(List *l, void *data);
+void pushBackList(List **l, void *data);
 void pushFrontList(List **l, void *data);
 void *foreachList(List **tmpPointerToList);

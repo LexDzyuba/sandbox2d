@@ -70,17 +70,17 @@ struct Node **popListTable(struct Table *t) {
 
 List *newList() {
 	List *l = malloc(sizeof(List));
-	l->data = NULL;
+	l->node = NULL;
 	return l;
 }
 
-void pushBackList(List *l, void *data) {
-	if (l == NULL) {
-		l = newList();
-		l->data = data;
+void pushBackList(List **l, void *data) {
+	if (*l == NULL) {
+		*l = newList();
+		(*l)->data = data;
 		return;
 	}
-	pushBackList(l->node, data);
+	pushBackList(&(*l)->node, data);
 }
 
 void pushFrontList(List **l, void *data) {

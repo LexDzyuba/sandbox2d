@@ -11,6 +11,7 @@
 
 #include "cstl.h"
 #include "shapes.h"
+#include "quadtree.h"
 
 #define DEBUG
 

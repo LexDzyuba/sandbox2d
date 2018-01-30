@@ -17,6 +17,11 @@ typedef struct Rect {
 	Point p[5];
 } Rect;
 
+typedef struct RectangleXY {
+	Point coordXY;
+	int width;
+} RectangleXY;
+
 typedef enum {Left, Right, Up, Down} Direction;
 
 int drawEllips(SDL_Renderer * renderer, Sint16 x, Sint16 y, Sint16 rx, Sint16 ry, Uint8 r, Uint8 g, Uint8 b, Uint8 a);

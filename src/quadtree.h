@@ -5,11 +5,14 @@
 
 typedef struct Quadtree {
 	int maxLevels;
+	int maxObjects;
 	int level;
 	List *objects;
 	RectangleXY bounds;
-	struct Quadtree **nod;
+	struct Quadtree **nodes;
 } Quadtree;
 
-void initQuadtree(Quadtree *qt, int x, int y);
-void split(Quadtree *qt);
+void initQuadtree(Quadtree *qt, RectangleXY rct, int level, int maxlvl);
+void splitQuadtree(Quadtree *qt);
+void insertObjToQuadtree(Quadtree qt, void *obj);
+int indexObjInQuadtree(Quadtree qt, void *obj);

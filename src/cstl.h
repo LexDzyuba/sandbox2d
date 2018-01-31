@@ -26,6 +26,10 @@ typedef struct List {
 } List;
 
 List *newList();
-void pushBackList(List **l, void *data);
-void pushFrontList(List **l, void *data);
+void pushList(List **l, void *data);
+void *popFrontList(List **l);
+List *predecessorList(List *l, void *data, int(*pCmp)(void*, void*));
+void *deleteList(List **l, void *data, int(*pCmp)(void*, void*));
+List *searchList(List *l, void *data, int(*pCmp)(void*, void*));
+size_t sizeList(List *l);
 void *foreachList(List **tmpPointerToList);

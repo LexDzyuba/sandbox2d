@@ -83,7 +83,7 @@ void pushBackList(List **l, void *data) {
 	pushBackList(&(*l)->node, data);
 }
 
-void pushFrontList(List **l, void *data) {
+void pushList(List **l, void *data) {
 	if (l == NULL) {
 		*l = newList();
 		(*l)->data = data;
@@ -93,6 +93,70 @@ void pushFrontList(List **l, void *data) {
 	tmp->data = data;
 	tmp->node = *l;
 	*l = tmp;
+}
+
+void *popFrontList(List **l) {
+	void *data = NULL;
+	if (*l == NULL)
+		return data;
+
+	data = (*l)->data;
+	List *t = *l;
+	*l = (*l)->node;
+	free(t);
+
+	return data;
+}
+
+size_t sizeList(List *l) {
+	size_t size = 0;
+	while (l != NULL) {
+		l = l->node;
+		size++;
+	}
+	return size;
+}
+
+List *searchList(List *l, void *data, int(*pCmp)(void*, void*)) {
+	if (l = NULL)
+		return NULL;
+	if (pCmp(l->data, data) == 0)
+		return l;
+	else
+		return searchList(l->node, data, pCmp);
+}
+
+List *predecessorList(List *l, void *data, int(*pCmp)(void*, void*)) {
+	if (l == NULL || l->node == NULL) 
+		return NULL;
+	if (pCmp(l->node->data, data) == 0)
+		return l;
+	else
+		return predecessorList(l->node, data, pCmp);
+}
+
+// Да-да это херня
+void *deleteList(List **l, void *data, int(*pCmp)(void*, void*)) {
+	List *tmp = NULL;
+	List *next = NULL;
+	List *pred = predecessorList(*l, data, pCmp);
+	
+	void *dat;
+
+	if (pred == NULL) {
+		tmp = (*l)->node;
+		dat = (*l)->data;
+		free(*l);
+		*l = tmp;
+		return dat;
+	}
+	next = pred->node->node;
+	tmp = pred->node;
+	dat = pred->node->data;
+	pred->node = next;
+	free(tmp);
+
+	return dat;
 }
 
 void *foreachList(List **tmpPointerToList) {

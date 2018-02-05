@@ -1,11 +1,14 @@
 #include "quadtree.h"
 
-void initQuadtree(Quadtree *qt, RectangleXY rct, int lvl, int maxlvl) {
-	qt->bounds = rct;
-	qt->level = lvl;
-	qt->maxLevels = maxlvl;
-	qt->maxObjects = 5;
-	qt->nodes = NULL; // malloc(sizeof(Quadtree) * 4);
+void initQuadtree(Quadtree **qt, RectangleXY rct, int lvl, int maxlvl) {
+	*qt = malloc(sizeof(Quadtree*));
+	(*qt)->bounds = rct;
+	(*qt)->level = lvl;
+	(*qt)->maxLevels = maxlvl;
+	(*qt)->maxObjects = 2;
+	(*qt)->objects = NULL;
+	(*qt)->nodes = (Quadtree**)malloc(sizeof(Quadtree*) * 4);
+	(*qt)->nodes[0] = NULL;
 }
 
 void splitQuadtree(Quadtree *qt) {
@@ -15,22 +18,22 @@ void splitQuadtree(Quadtree *qt) {
 	int x = qt->bounds.coordXY.x;
 	int y = qt->bounds.coordXY.y;
 
-	qt->nodes = malloc(sizeof(Quadtree) * 4);
+	//qt->nodes = malloc(sizeof(Quadtree) * 4);
 
 	RectangleXY rect = { {x + midWidth, y}, midWidth };
-	initQuadtree(qt->nodes[0], rect, qt->level + 1, 10);
+	initQuadtree(&qt->nodes[0], rect, qt->level + 1, 10);
 	rect.coordXY.x = x + midWidth; rect.coordXY.y = y;
 	rect.width = midWidth;
 
-	initQuadtree(qt->nodes[1], rect, qt->level + 1, 10);
+	initQuadtree(&qt->nodes[1], rect, qt->level + 1, 10);
 	rect.coordXY.x = x; rect.coordXY.y = y;
 	rect.width = midWidth;
 
-	initQuadtree(qt->nodes[2], rect, qt->level + 1, 10);
+	initQuadtree(&qt->nodes[2], rect, qt->level + 1, 10);
 	rect.coordXY.x = x; rect.coordXY.y = y + midHeight;
 	rect.width = midHeight;
 
-	initQuadtree(qt->nodes[3], rect, qt->level + 1, 10);
+	initQuadtree(&qt->nodes[3], rect, qt->level + 1, 10);
 	rect.coordXY.x = x + midWidth; rect.coordXY.y = y + midHeight;
 	rect.width = midWidth;
 }
@@ -62,29 +65,45 @@ int indexObjInQuadtree(Quadtree qt, void *obj) {
 	return index;
 }
 
-void insertObjToQuadtree(Quadtree qt, void *obj) {
-	if (qt.nodes[0] != NULL) {
-		int index = indexObjInQuadtree(qt, obj);
+int compareToPointers(void *d1, void *d2) {
+	if (&(*(Rect *)d1) == &(*(Rect *)d2))
+		return 0;
+	else
+		return -1;
+}
+
+void insertObjToQuadtree(Quadtree *qt, void *obj) {
+	if (qt->nodes[0] != NULL) {
+		int index = indexObjInQuadtree(*qt, obj);
 
 		if (index != -1) {
-			insertObjToQuadtree(*qt.nodes[index], obj);
+			insertObjToQuadtree(qt->nodes[index], obj);
 			return;
 		}
 	}
-	pushList(&qt.objects, obj);
+	pushList(&qt->objects, obj);
 
-	if (sizeList(qt.objects) > qt.maxObjects && qt.level < qt.maxLevels) {
-		if (qt.nodes == NULL) {
-			splitQuadtree(&qt);
+	if (sizeList(qt->objects) > qt->maxObjects && qt->level < qt->maxLevels) {
+		if (qt->nodes[0] == NULL) {
+			splitQuadtree(qt);
 		}
 	}
 
-	List *lst = qt.objects;
+	List *lst = qt->objects;
 	while (lst != NULL) {
 		void *data = foreachList(&lst);
-		int index = indexObjInQuadtree(qt, data);
+		int index = indexObjInQuadtree(*qt, data);
 		if (index != -1) {
-			insertObjToQuadtree(*qt.nodes[index], data);
+			deleteList(&qt->objects, data, compareToPointers);
+			insertObjToQuadtree(qt->nodes[index], data);
 		}
 	}
+}
+
+List *retriveQuadtree(Quadtree qt, void *obj) {
+	int index = indexObjInQuadtree(qt, obj);
+	if (index != -1 && qt.nodes[0] != NULL) {
+		return retriveQuadtree(*qt.nodes[index], obj);
+	}
+	return qt.objects;
 }

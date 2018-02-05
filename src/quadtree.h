@@ -14,5 +14,6 @@ typedef struct Quadtree {
 
 void initQuadtree(Quadtree *qt, RectangleXY rct, int level, int maxlvl);
 void splitQuadtree(Quadtree *qt);
-void insertObjToQuadtree(Quadtree qt, void *obj);
+void insertObjToQuadtree(Quadtree *qt, void *obj);
 int indexObjInQuadtree(Quadtree qt, void *obj);
+List *retriveQuadtree(Quadtree qt, void *obj);

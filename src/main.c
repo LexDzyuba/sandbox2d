@@ -30,6 +30,8 @@ SDL_Texture *pTexture = 0;
 SDL_Rect sourceRectangle;
 SDL_Rect destinationRectangle;
 
+Quadtree *quad;
+
 Rect r; 
 Rect r2;
 
@@ -120,21 +122,44 @@ int init(char *title, int x, int y, int width, int height, int flags) {
 	//rotateRect(&r2, 45);
 	//initRect(&r, 0, 0, 1);
 
+	RectangleXY rect = {
+		.coordXY = { 0, 0 },
+		.width = 480
+	};
+	initQuadtree(&quad, rect, 1, 5);
+
+	Rect *r1 = malloc(sizeof(Rect));
+	setParamsRect(r1, 6, 6, 5);
+	insertObjToQuadtree(quad, r1);
+
+	Rect *r2 = malloc(sizeof(Rect));
+	setParamsRect(r2, 20, 20, 5);
+	insertObjToQuadtree(quad, r2);
+
+	Rect *r3 = malloc(sizeof(Rect));
+	setParamsRect(r3, 50, 20, 5);
+	insertObjToQuadtree(quad, r3);
+
+	Rect *r4 = malloc(sizeof(Rect));
+	setParamsRect(r4, 50, 20, 5);
+	insertObjToQuadtree(quad, r4);
+
+
 	return 0;
 }
 
 void render() {
 	SDL_RenderClear(pRenderer);
-	draw("animate", 0, 0, 128, 82, pRenderer, SDL_FLIP_NONE);
-	drawFrame("animate", 100, 100, 128, 82, 1, currentFrame, pRenderer, SDL_FLIP_NONE);
+	//draw("animate", 0, 0, 128, 82, pRenderer, SDL_FLIP_NONE);
+	//drawFrame("animate", 100, 100, 128, 82, 1, currentFrame, pRenderer, SDL_FLIP_NONE);
 	SDL_SetRenderDrawColor(pRenderer, 255, 0, 0, 255);
 	static f = 0;
 
 	drawFillRect(pRenderer, &r, 0xFF0000FF);
-	drawRect(pRenderer, &r2, 0xFFFF00FF);
+	//drawRect(pRenderer, quad->objects->data, 0xFFFF00FF);
 	
-	if (vecCollisionRect(&r, &r2))
-		printf("rect's collide\n");
+	//if (vecCollisionRect(&r, &r2))
+		//printf("rect's collide\n");
 	
 	SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(pRenderer);

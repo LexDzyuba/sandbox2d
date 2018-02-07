@@ -1,7 +1,7 @@
 #include "quadtree.h"
 
 void initQuadtree(Quadtree **qt, RectangleXY rct, int lvl, int maxlvl) {
-	*qt = malloc(sizeof(Quadtree*));
+	*qt = malloc(sizeof(Quadtree));
 	(*qt)->bounds = rct;
 	(*qt)->level = lvl;
 	(*qt)->maxLevels = maxlvl;
@@ -44,19 +44,22 @@ int indexObjInQuadtree(Quadtree qt, void *obj) {
 	float vertSep = qt.bounds.coordXY.x + (qt.bounds.width / 2);
 	float horizSep = qt.bounds.coordXY.y + (qt.bounds.width / 2);
 
-	int topQuadrant = (((Rect*)obj)->p[1].y < horizSep &&
-		((Rect*)obj)->p[1].y + qt.bounds.width < horizSep);
+	float heightObj = ((Rect*)obj)->p[3].y - ((Rect*)obj)->p[2].y;
+	float widthObj = ((Rect*)obj)->p[1].x - ((Rect*)obj)->p[2].x;
 
-	int bottomQuadrant = ((Rect*)obj)->p[1].y > horizSep;
+	int topQuadrant = (((Rect*)obj)->p[1].y < horizSep &&
+		((Rect*)obj)->p[1].y + heightObj < horizSep);
+
+	int bottomQuadrant = ((Rect*)obj)->p[1].y + heightObj >= horizSep;
 
 	if (((Rect*)obj)->p[2].x < vertSep &&
-		((Rect*)obj)->p[2].x + qt.bounds.width < vertSep) {
+		((Rect*)obj)->p[2].x + widthObj < vertSep) {
 		if (topQuadrant)
 			index = 1;
 		else if (bottomQuadrant)
 			index = 2;
 	}
-	else if (((Rect*)obj)->p[2].x > vertSep) {
+	else if (((Rect*)obj)->p[2].x + widthObj >= vertSep) {
 		if (topQuadrant)
 			index = 0;
 		else if (bottomQuadrant)
@@ -87,15 +90,16 @@ void insertObjToQuadtree(Quadtree *qt, void *obj) {
 		if (qt->nodes[0] == NULL) {
 			splitQuadtree(qt);
 		}
-	}
 
-	List *lst = qt->objects;
-	while (lst != NULL) {
-		void *data = foreachList(&lst);
-		int index = indexObjInQuadtree(*qt, data);
-		if (index != -1) {
-			deleteList(&qt->objects, data, compareToPointers);
-			insertObjToQuadtree(qt->nodes[index], data);
+
+		List *lst = qt->objects;
+		while (lst != NULL) {
+			void *data = foreachList(&lst);
+			int index = indexObjInQuadtree(*qt, data);
+			if (index != -1) {
+				deleteList(&qt->objects, data, compareToPointers);
+				insertObjToQuadtree(qt->nodes[index], data);
+			}
 		}
 	}
 }

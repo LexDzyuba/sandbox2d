@@ -84,7 +84,7 @@ void pushBackList(List **l, void *data) {
 }
 
 void pushList(List **l, void *data) {
-	if (l == NULL) {
+	if (*l == NULL) {
 		*l = newList();
 		(*l)->data = data;
 		return;

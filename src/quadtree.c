@@ -18,24 +18,20 @@ void splitQuadtree(Quadtree *qt) {
 	int x = qt->bounds.coordXY.x;
 	int y = qt->bounds.coordXY.y;
 
-	//qt->nodes = malloc(sizeof(Quadtree) * 4);
-
 	RectangleXY rect = { {x + midWidth, y}, midWidth };
 	initQuadtree(&qt->nodes[0], rect, qt->level + 1, 10);
-	rect.coordXY.x = x + midWidth; rect.coordXY.y = y;
+	
+	rect.coordXY.x = x ; rect.coordXY.y = y;
 	rect.width = midWidth;
-
 	initQuadtree(&qt->nodes[1], rect, qt->level + 1, 10);
-	rect.coordXY.x = x; rect.coordXY.y = y;
-	rect.width = midWidth;
 
+	rect.coordXY.x = x; rect.coordXY.y = y + midWidth;
+	rect.width = midWidth;
 	initQuadtree(&qt->nodes[2], rect, qt->level + 1, 10);
-	rect.coordXY.x = x; rect.coordXY.y = y + midHeight;
-	rect.width = midHeight;
 
-	initQuadtree(&qt->nodes[3], rect, qt->level + 1, 10);
-	rect.coordXY.x = x + midWidth; rect.coordXY.y = y + midHeight;
+	rect.coordXY.x = x + midWidth; rect.coordXY.y = y + midWidth;
 	rect.width = midWidth;
+	initQuadtree(&qt->nodes[3], rect, qt->level + 1, 10);
 }
 
 int indexObjInQuadtree(Quadtree qt, void *obj) {

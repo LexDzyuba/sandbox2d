@@ -196,6 +196,7 @@ void drawFillRect(SDL_Renderer *pRenderer, Rect *r, uint32_t color) {
 	drawRect(pRenderer, r, color);
 
 	uint8_t *c = (uint8_t*)&color;
+	SDL_SetRenderDrawColor(pRenderer, c[0], c[1], c[2], c[3]);
 	for (int i = (int)r->p[2].y + 1; i < (int)r->p[3].y; i++) {
 		for (int j = (int)r->p[2].x + 1; j < (int)r->p[1].x; j++)
 			SDL_RenderDrawPoint(pRenderer, j, i);

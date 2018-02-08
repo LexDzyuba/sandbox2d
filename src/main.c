@@ -31,6 +31,8 @@ SDL_Rect sourceRectangle;
 SDL_Rect destinationRectangle;
 
 Quadtree *quad;
+List *listRects;
+
 
 Rect r; 
 Rect r2;
@@ -49,6 +51,7 @@ int loadTexture(char *fileName, char *id, SDL_Renderer *pRenderer);
 void draw(char *id, int x, int y, int width, int height, SDL_Renderer *pRenderer, SDL_RendererFlip flip);
 void drawFrame(char *id, int x, int y, int width, int height, int currentRow, int currentFrame, SDL_Renderer *pRenderer, SDL_RendererFlip flip);
 void drawRectangle();
+void drawBorderQuadtree(Quadtree *quad, SDL_Renderer *pRenderer);
 
 
 static SDL_Renderer *ren = NULL;
@@ -64,7 +67,7 @@ int main(int argc, char **argv) {
 	freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 #endif
 
-	if (!init("first", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE))
+	if (!init("first", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 480, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE))
 		isRunning = 1;
 	else
 		return 1;
@@ -130,18 +133,22 @@ int init(char *title, int x, int y, int width, int height, int flags) {
 
 	Rect *r1 = malloc(sizeof(Rect));
 	setParamsRect(r1, 6, 6, 5);
+	pushList(&listRects, r1);
 	insertObjToQuadtree(quad, r1);
 
 	Rect *r2 = malloc(sizeof(Rect));
 	setParamsRect(r2, 20, 20, 5);
+	pushList(&listRects, r2);
 	insertObjToQuadtree(quad, r2);
 
 	Rect *r3 = malloc(sizeof(Rect));
 	setParamsRect(r3, 50, 20, 5);
+	pushList(&listRects, r3);
 	insertObjToQuadtree(quad, r3);
 
 	Rect *r4 = malloc(sizeof(Rect));
-	setParamsRect(r4, 50, 20, 5);
+	setParamsRect(r4, 300, 10, 5);
+	pushList(&listRects, r4);
 	insertObjToQuadtree(quad, r4);
 
 
@@ -152,10 +159,16 @@ void render() {
 	SDL_RenderClear(pRenderer);
 	//draw("animate", 0, 0, 128, 82, pRenderer, SDL_FLIP_NONE);
 	//drawFrame("animate", 100, 100, 128, 82, 1, currentFrame, pRenderer, SDL_FLIP_NONE);
-	SDL_SetRenderDrawColor(pRenderer, 255, 0, 0, 255);
+	SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
 	static f = 0;
 
 	drawFillRect(pRenderer, &r, 0xFF0000FF);
+
+	
+	for (List *tmpList = listRects; tmpList != NULL;) {
+		drawFillRect(pRenderer, (Rect*)foreachList(&tmpList), 0x000000FF);
+	}
+	drawBorderQuadtree(quad, pRenderer);
 	//drawRect(pRenderer, quad->objects->data, 0xFFFF00FF);
 	
 	//if (vecCollisionRect(&r, &r2))
@@ -293,4 +306,33 @@ void drawFrame(char *id, int x, int y, int width, int height, int currentRow, in
 void drawRectangle() {
 	SDL_SetRenderDrawColor(pRenderer, 0, 0, 255, 255);
 	SDL_RenderFillRect(pRenderer, &sourceRectangle);
+}
+
+void drawBorderQuadtree(Quadtree *quad, SDL_Renderer *pRenderer) {
+	if (quad == NULL)
+		return;
+
+	Point p11, p12, p21, p22;
+
+	p11.x = quad->bounds.coordXY.x;
+	p11.y = quad->bounds.coordXY.y + quad->bounds.width / 2;
+	p12.x = quad->bounds.coordXY.x + quad->bounds.width;
+	p12.y = quad->bounds.coordXY.y + quad->bounds.width / 2;
+
+	p21.x = quad->bounds.coordXY.x + quad->bounds.width / 2;
+	p21.y = quad->bounds.coordXY.y;
+	p22.x = quad->bounds.coordXY.x + quad->bounds.width / 2;
+	p22.y = quad->bounds.coordXY.y + quad->bounds.width;
+
+	SDL_SetRenderDrawColor(pRenderer, 0, 255, 255, 255);
+	SDL_RenderDrawLine(pRenderer, p11.x, p11.y, p12.x, p12.y);
+	SDL_RenderDrawLine(pRenderer, p21.x, p21.y, p22.x, p22.y);
+	
+	if (quad->nodes[0] == NULL)
+		return;
+
+	drawBorderQuadtree(quad->nodes[0], pRenderer);
+	//drawBorderQuadtree(quad->nodes[1], pRenderer);
+	//drawBorderQuadtree(quad->nodes[2], pRenderer);
+	//drawBorderQuadtree(quad->nodes[3], pRenderer);
 }

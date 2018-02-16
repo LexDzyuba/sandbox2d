@@ -1,7 +1,10 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "cstl.h"
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 struct Table *createTable(size_t size) {
@@ -165,4 +168,24 @@ void *foreachList(List **tmpPointerToList) {
 	void *data = (*tmpPointerToList)->data;
 	*tmpPointerToList = (*tmpPointerToList)->node;
 	return data;
+}
+
+char *readFile(char *fileName) {
+	FILE *f;
+	f = fopen(fileName, "r");
+	if (!f) {
+		printf("sfsdf\n");
+		return NULL;
+	}
+	fseek(f, 0, SEEK_END);
+	int s = ftell(f);
+	rewind(f);
+
+	char *str = malloc(sizeof(char) * s + 1);
+	int n = fread(str, 1, s, f);
+	str[s] = '\0';
+
+	fclose(f);
+
+	return str;
 }

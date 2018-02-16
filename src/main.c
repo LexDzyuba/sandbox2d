@@ -1,10 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+
 #include <SDL.h>
 #include <SDL_Image.h>
 #include <SDL_thread.h>
 //#include <SDL2_gfxPrimitives.h>
-
 
 #include <Windows.h>
 #include <stdio.h>
@@ -12,6 +12,7 @@
 #include "cstl.h"
 #include "shapes.h"
 #include "quadtree.h"
+#include "tilesEngine.h"
 
 #define DEBUG
 
@@ -33,6 +34,9 @@ SDL_Rect destinationRectangle;
 Quadtree *quad;
 List *listRects;
 
+SDL_Texture *pMap = NULL;
+TileMap tmap;
+TilesArray tarr;
 
 Rect r; 
 Rect r2;
@@ -47,8 +51,8 @@ void update();
 void handleEvents();
 void clean();
 
-int loadTexture(char *fileName, char *id, SDL_Renderer *pRenderer);
-void draw(char *id, int x, int y, int width, int height, SDL_Renderer *pRenderer, SDL_RendererFlip flip);
+SDL_Texture *loadTexture(char *fileName, SDL_Renderer *pRenderer);
+void draw(SDL_Renderer*, SDL_Texture*, int x, int y, int width, int height, SDL_RendererFlip flip);
 void drawFrame(char *id, int x, int y, int width, int height, int currentRow, int currentFrame, SDL_Renderer *pRenderer, SDL_RendererFlip flip);
 void drawRectangle();
 void drawBorderQuadtree(Quadtree *quad, SDL_Renderer *pRenderer);
@@ -109,71 +113,36 @@ int init(char *title, int x, int y, int width, int height, int flags) {
 		return 1;
 	}
 
-	pTextureMap = createTable(10);
+	TilesInfo tinfo;
+	MapInfo minfo;
 
-	if(loadTexture("assets/animate-alpha.png", "animate", pRenderer))
-		printf("can't loaded texture\n");
+	tilesInfoParse(readFile("assets/dung.json"), &tinfo);
+	mapInfoParse(readFile("assets/unt.json"), &minfo);
 
-	sourceRectangle.x = 20;
-	sourceRectangle.y = 20;
-	sourceRectangle.w = 20;
-	sourceRectangle.h = 20;
+
+	//initTileMap(&tmap, "assets/dung_tilemap.png", pRenderer, minfo.tilewidth, minfo.tileheight);
 	
-	setParamsRect(&r, 320, 200, 50);
-	setParamsRect(&r2, 400, 200, 25);
-	//rotateRect(&r, 45);
-	//rotateRect(&r2, 45);
-	//initRect(&r, 0, 0, 1);
-
-	RectangleXY rect = {
-		.coordXY = { 0, 0 },
-		.width = 480
-	};
-	initQuadtree(&quad, rect, 1, 5);
-
-	Rect *r1 = malloc(sizeof(Rect));
-	setParamsRect(r1, 6, 6, 5);
-	pushList(&listRects, r1);
-	insertObjToQuadtree(quad, r1);
-
-	Rect *r2 = malloc(sizeof(Rect));
-	setParamsRect(r2, 20, 20, 5);
-	pushList(&listRects, r2);
-	insertObjToQuadtree(quad, r2);
-
-	Rect *r3 = malloc(sizeof(Rect));
-	setParamsRect(r3, 50, 20, 5);
-	pushList(&listRects, r3);
-	insertObjToQuadtree(quad, r3);
-
-	Rect *r4 = malloc(sizeof(Rect));
-	setParamsRect(r4, 300, 10, 5);
-	pushList(&listRects, r4);
-	insertObjToQuadtree(quad, r4);
-
+	tilesArrayFill(pRenderer, &tarr, tinfo);
+	pMap = concateTiles(pRenderer, tarr, minfo, tinfo);
 
 	return 0;
 }
 
 void render() {
 	SDL_RenderClear(pRenderer);
-	//draw("animate", 0, 0, 128, 82, pRenderer, SDL_FLIP_NONE);
-	//drawFrame("animate", 100, 100, 128, 82, 1, currentFrame, pRenderer, SDL_FLIP_NONE);
-	SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255);
-	static f = 0;
-
-	drawFillRect(pRenderer, &r, 0xFF0000FF);
-
 	
-	for (List *tmpList = listRects; tmpList != NULL;) {
-		drawFillRect(pRenderer, (Rect*)foreachList(&tmpList), 0x000000FF);
+	SDL_Rect rre;
+	rre.w = 16;
+	rre.h = 16;
+	rre.x = 240;
+	rre.y = 240;
+	SDL_QueryTexture(pMap, NULL, NULL, &rre.w, &rre.h);
+	
+	int jj = SDL_RenderCopy(pRenderer, pMap, NULL, &rre);
+	if (jj == -1) {
+		printf("jj\n");
 	}
-	drawBorderQuadtree(quad, pRenderer);
-	//drawRect(pRenderer, quad->objects->data, 0xFFFF00FF);
-	
-	//if (vecCollisionRect(&r, &r2))
-		//printf("rect's collide\n");
-	
+
 	SDL_SetRenderDrawColor(pRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(pRenderer);
 	SDL_Delay(45);
@@ -256,28 +225,23 @@ void clean() {
 	SDL_Quit();
 }
 
-int loadTexture(char *fileName, char *id, SDL_Renderer *pRenderer) {
-	SDL_Surface *pTmpSurface = NULL;
-	pTmpSurface = IMG_Load(fileName);
-	if (!pTmpSurface) {
-		printf("IMG_Load: %s\n", IMG_GetError());
-		return 1;
-	}
-	SDL_Texture *pTexture = SDL_CreateTextureFromSurface(pRenderer, pTmpSurface);
-	
-	SDL_FreeSurface(pTmpSurface);
 
-	if (!pTexture) {
-		printf("cannot crt txtr from surface\n");
-		return 1;
-	}
 
-	insert(pTextureMap, id, pTexture, hashStringNoCase, strCmp);
+//void draw(char *id, int x, int y, int width, int height, SDL_Renderer *pRenderer, SDL_RendererFlip flip) {
+//	SDL_Rect srcRect;
+//	SDL_Rect destRect;
+//
+//	srcRect.x = 0;
+//	srcRect.y = 0;
+//	destRect.w = srcRect.w = width;
+//	destRect.h = srcRect.h = height;
+//	destRect.x = x;
+//	destRect.y = y;
+//
+//	SDL_RenderCopyEx(pRenderer, (SDL_Texture*)lookup(pTextureMap, id, hashStringNoCase, strCmp), &srcRect, &destRect, 0, 0, flip);
+//}
 
-	return 0;
-}
-
-void draw(char *id, int x, int y, int width, int height, SDL_Renderer *pRenderer, SDL_RendererFlip flip) {
+void draw(SDL_Renderer *pRenderer, SDL_Texture *texture, int x, int y, int width, int height,  SDL_RendererFlip flip) {
 	SDL_Rect srcRect;
 	SDL_Rect destRect;
 
@@ -288,8 +252,9 @@ void draw(char *id, int x, int y, int width, int height, SDL_Renderer *pRenderer
 	destRect.x = x;
 	destRect.y = y;
 
-	SDL_RenderCopyEx(pRenderer, (SDL_Texture*)lookup(pTextureMap, id, hashStringNoCase, strCmp), &srcRect, &destRect, 0, 0, flip);
+	SDL_RenderCopyEx(pRenderer, texture, &srcRect, &destRect, 0, 0, flip);
 }
+
 void drawFrame(char *id, int x, int y, int width, int height, int currentRow, int currentFrame, SDL_Renderer *pRenderer, SDL_RendererFlip flip) {
 	SDL_Rect srcRect;
 	SDL_Rect destRect;
@@ -336,3 +301,4 @@ void drawBorderQuadtree(Quadtree *quad, SDL_Renderer *pRenderer) {
 	//drawBorderQuadtree(quad->nodes[2], pRenderer);
 	//drawBorderQuadtree(quad->nodes[3], pRenderer);
 }
+

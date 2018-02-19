@@ -3,8 +3,8 @@
 #include <SDL.h>
 
 typedef struct Point {
-	float x;
-	float y;
+	int x;
+	int y;
 } Point;
 
 typedef struct Vector2f {

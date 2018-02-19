@@ -70,13 +70,12 @@ typedef struct MapInfo {
 	int width;
 } MapInfo;
 
-void initTileMap(TileMap *map, char *fileName, SDL_Renderer *pRenderer, int tileW, int tileH);
 SDL_Texture *getTileFromTileMap(SDL_Renderer *pRenderer, SDL_Texture *tileMap, SDL_Rect destRect);
 void tilesArrayFill(SDL_Renderer *pRend, TilesArray *arr, TilesInfo tInfo);
 SDL_Texture *loadTexture(char *fileName, SDL_Renderer *pRenderer);
 SDL_Texture *concateTiles(SDL_Renderer *pRend, TilesArray arrTiles, MapInfo mInfo, TilesInfo tInfo);
 void setLoc(int i, int j, int *x, int *y, TilesInfo tInfo);
 
-int tilesInfoParse(char* str, TilesInfo *pInfo);
+int tilesInfoParse(char *str, TilesInfo *pInfo);
 int mapInfoParse(char *str, MapInfo *pMapInfo);
 char *strDup(char *str);

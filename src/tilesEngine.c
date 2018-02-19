@@ -5,22 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-int exampleArray[] = { 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0,
-					   0, 0, 0, 0, 0 };
-
-const int tileWidth = 16; const int tileHeight = 16;
-
-void initTileMap(TileMap *map, char *fileName, SDL_Renderer *pRenderer, int tileW, int tileH) {
-	map->pRend = pRenderer;
-
-
-	SDL_QueryTexture(map->map, NULL, NULL, &map->mapW, &map->mapH);
-	map->tileH = tileH;
-	map->tileW = tileW;
-}
 
 SDL_Texture *getTileFromTileMap(SDL_Renderer *pRenderer, SDL_Texture *tileMap, SDL_Rect destRect) {
 	SDL_Texture *texture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, destRect.w, destRect.h);
@@ -95,15 +79,17 @@ SDL_Texture *concateTiles(SDL_Renderer *pRend, TilesArray arrTiles, MapInfo mInf
 
 	int w = tInfo.columns; //tmap.mapW / tmap.tileW;
 
-	for (int i = 0; i < mInfo.width * mInfo.height; i++) {
-		int numTile = mInfo.lay[0].data[i];  // dataArr[i];
-		rect.x = i % mInfo.width * tInfo.tilewidth;
-		rect.y = i / mInfo.height * tInfo.tileheight;
+	for (int l = 0; l < mInfo.laySize; l++) {
+		for (int i = 0; i < mInfo.width * mInfo.height; i++) {
+			int numTile = (mInfo.lay[l].data[i] - 1 > 0) ? mInfo.lay[l].data[i] - 1 : 1; // это все tiled
+			rect.x = i % mInfo.width * tInfo.tilewidth;
+			rect.y = i / mInfo.height * tInfo.tileheight;
 
-		int posJ = numTile % w;
-		int posI = numTile / w;
+			int posJ = numTile % w;
+			int posI = numTile / w;
 
-		SDL_RenderCopy(pRend, arrTiles.tilesArr[posI][posJ].texture, NULL, &rect);
+			SDL_RenderCopy(pRend, arrTiles.tilesArr[posI][posJ].texture, NULL, &rect);
+		}
 	}
 	
 	SDL_SetRenderTarget(pRend, NULL);
@@ -175,10 +161,24 @@ int mapInfoParse(char *str, MapInfo *pMapInfo) {
 			pMapInfo->lay[i].data[j] = cJSON_GetArrayItem(data, j)->valueint;
 		}
 	}
+
+	cJSON *tilesets = cJSON_GetObjectItemCaseSensitive(map_json, "tilesets");
+	int setsSize = cJSON_GetArraySize(tilesets);
+	
+	pMapInfo->tilesets = malloc(sizeof(*pMapInfo->tilesets) * setsSize);
+	pMapInfo->tilesetsSize = setsSize;
+
+	for (int i = 0; i < setsSize; i++) {
+		pMapInfo->tilesets[i].firstid = cJSON_GetArrayItem(tilesets, i)->valueint;
+		pMapInfo->tilesets[i].source = strDup(cJSON_GetArrayItem(tilesets, i)->valuestring);
+	}
+
 	return 0;
 }
 
 char *strDup(char *str) {
+	if (str == NULL)
+		return NULL;
 	char *s = malloc(sizeof(char) * strlen(str) + 1);
 	strcpy(s, str);
 	return s;

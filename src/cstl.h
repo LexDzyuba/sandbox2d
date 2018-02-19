@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+
 struct Node {
 	void *key;
 	void *data;
@@ -33,5 +34,6 @@ void *deleteList(List **l, void *data, int(*pCmp)(void*, void*));
 List *searchList(List *l, void *data, int(*pCmp)(void*, void*));
 size_t sizeList(List *l);
 void *foreachList(List **tmpPointerToList);
+void freeList();
 
 char *readFile(char *fileName);
